@@ -14,7 +14,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Align to top, allow natural flow */
+            justify-content: flex-start;
             min-height: 100vh;
         }
         h1 {
@@ -22,13 +22,14 @@
             margin: 10px 0;
         }
         .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr 1fr; /* Explicit 5 columns */
-            grid-template-rows: repeat(6, 50px); /* 6 rows, fixed height */
+            display: grid !important; /* Force grid */
+            grid-template-columns: repeat(5, 1fr) !important; /* 5 equal columns */
+            grid-template-rows: repeat(6, 60px) !important; /* 6 fixed rows */
             gap: 4px;
-            width: 90%; /* Relative to container */
-            max-width: 320px; /* Cap for readability */
+            width: 90%;
+            max-width: 320px;
             margin: 20px auto;
+            border: 1px solid red; /* Debug border to see grid */
         }
         .cell {
             background-color: white;
@@ -39,8 +40,7 @@
             font-size: 14px;
             font-weight: bold;
             text-transform: uppercase;
-            min-width: 0; /* Prevent overflow */
-            height: 50px; /* Match row height */
+            height: 100%; /* Fill row height */
         }
         .green { background-color: #6aaa64; color: white; }
         .yellow { background-color: #c9b458; color: white; }
@@ -73,11 +73,11 @@
         @media (max-width: 500px) and (orientation: portrait) {
             .grid {
                 width: 95%;
-                grid-template-rows: repeat(6, 45px); /* Slightly smaller rows */
+                grid-template-rows: repeat(6, 50px);
             }
             .cell {
                 font-size: 12px;
-                height: 45px;
+                height: 100%;
             }
             h1 {
                 font-size: 20px;
@@ -101,16 +101,19 @@
         let currentGuess = 0;
         let gameOver = false;
 
-        // Initialize grid (6 rows, 5 columns)
+        // Initialize and debug grid
         const grid = document.getElementById("grid");
+        console.log("Creating grid...");
         for (let i = 0; i < maxGuesses; i++) {
             for (let j = 0; j < 5; j++) {
                 const cell = document.createElement("div");
                 cell.classList.add("cell");
                 cell.id = `cell-${i}-${j}`;
+                cell.textContent = `${i},${j}`; // Debug: Show position
                 grid.appendChild(cell);
             }
         }
+        console.log("Grid creation complete. Total cells:", grid.children.length);
 
         function submitGuess() {
             if (gameOver) return;
@@ -148,7 +151,7 @@
             for (let i = 0; i < 5; i++) {
                 if (guessLetters[i] === targetLetters[i]) {
                     feedback.push({ letter: guessLetters[i], state: "green", shift: "0" });
-                    targetLetters[i] = null; // Mark as used
+                    targetLetters[i] = null;
                 } else if (targetLetters.includes(guessLetters[i])) {
                     const targetPos = targetWord.indexOf(guessLetters[i], i);
                     if (targetPos === -1) {
