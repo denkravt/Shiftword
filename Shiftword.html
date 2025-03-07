@@ -6,7 +6,7 @@
     <title>Shiftword</title>
     <style>
         * {
-            box-sizing: border-box; /* Ensure consistent sizing */
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
@@ -25,14 +25,23 @@
             font-size: 24px;
             margin: 10px 0;
         }
+        .grid-wrapper {
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+        }
         .grid {
-            display: grid !important;
-            grid-template-columns: 60px 60px 60px 60px 60px !important; /* Explicit pixel widths */
-            grid-template-rows: repeat(6, 60px) !important; /* Fixed row heights */
+            display: grid;
+            grid-template-columns: 60px 60px 60px 60px 60px;
+            grid-template-rows: repeat(6, 60px);
             gap: 4px;
-            width: 300px !important; /* Fixed width for consistency */
+            width: 100%;
+            max-width: 320px;
             margin: 20px auto;
-            border: 2px solid red !important; /* Stronger debug border */
+            border: 2px solid red;
+            /* Fallback for grid failure */
+            display: flex;
+            flex-wrap: wrap;
         }
         .cell {
             background-color: white;
@@ -43,7 +52,9 @@
             font-size: 14px;
             font-weight: bold;
             text-transform: uppercase;
-            height: 100%; /* Fill row height */
+            width: 60px;
+            height: 60px;
+            flex: 0 0 60px; /* For flex fallback */
         }
         .green { background-color: #6aaa64; color: white; }
         .yellow { background-color: #c9b458; color: white; }
@@ -75,13 +86,16 @@
         /* Portrait optimization */
         @media (max-width: 500px) and (orientation: portrait) {
             .grid {
-                width: 90% !important;
-                grid-template-columns: repeat(5, 1fr) !important;
-                grid-template-rows: repeat(6, 50px) !important;
+                grid-template-columns: repeat(5, 1fr);
+                grid-template-rows: repeat(6, 50px);
+                width: 90%;
+                max-width: none;
             }
             .cell {
                 font-size: 12px;
-                height: 100%;
+                width: 100%;
+                height: 50px;
+                flex: 0 0 calc(20% - 4px); /* Flex fallback for 5 columns */
             }
             h1 {
                 font-size: 20px;
@@ -94,7 +108,9 @@
 </head>
 <body>
     <h1>Shiftword</h1>
-    <div id="grid"></div>
+    <div class="grid-wrapper">
+        <div id="grid"></div>
+    </div>
     <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word">
     <button onclick="submitGuess()">Submit</button>
     <div id="message"></div>
@@ -118,6 +134,8 @@
             }
         }
         console.log("Grid creation complete. Total cells:", grid.children.length);
+        console.log("Grid styles:", window.getComputedStyle(grid).display);
+        console.log("Grid columns:", window.getComputedStyle(grid).gridTemplateColumns);
 
         function submitGuess() {
             if (gameOver) return;
@@ -132,58 +150,4 @@
 
             // Process guess
             const feedback = evaluateGuess(guess);
-            displayGuess(guess, feedback);
-            currentGuess++;
-
-            // Check win/lose
-            if (guess === targetWord) {
-                document.getElementById("message").textContent = `You win! The word was ${targetWord}.`;
-                gameOver = true;
-            } else if (currentGuess === maxGuesses) {
-                document.getElementById("message").textContent = `Game over! The word was ${targetWord}.`;
-                gameOver = true;
-            }
-
-            input.value = "";
-        }
-
-        function evaluateGuess(guess) {
-            const feedback = [];
-            const targetLetters = targetWord.split("");
-            const guessLetters = guess.split("");
-
-            for (let i = 0; i < 5; i++) {
-                if (guessLetters[i] === targetLetters[i]) {
-                    feedback.push({ letter: guessLetters[i], state: "green", shift: "0" });
-                    targetLetters[i] = null;
-                } else if (targetLetters.includes(guessLetters[i])) {
-                    const targetPos = targetWord.indexOf(guessLetters[i], i);
-                    if (targetPos === -1) {
-                        feedback.push({ letter: guessLetters[i], state: "gray", shift: "X" });
-                    } else {
-                        const shift = targetPos - i;
-                        feedback.push({ letter: guessLetters[i], state: "yellow", shift: shift > 0 ? `+${shift}` : shift });
-                        targetLetters[targetPos] = null;
-                    }
-                } else {
-                    feedback.push({ letter: guessLetters[i], state: "gray", shift: "X" });
-                }
-            }
-            return feedback;
-        }
-
-        function displayGuess(guess, feedback) {
-            for (let i = 0; i < 5; i++) {
-                const cell = document.getElementById(`cell-${currentGuess}-${i}`);
-                cell.textContent = `${feedback[i].letter} (${feedback[i].shift})`;
-                cell.classList.add(feedback[i].state);
-            }
-        }
-
-        // Submit on Enter key
-        document.getElementById("guessInput").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") submitGuess();
-        });
-    </script>
-</body>
-</html>
+            displayGuess(guess, feedback);​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
