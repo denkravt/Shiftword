@@ -5,31 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shiftword</title>
     <style>
+        * {
+            box-sizing: border-box; /* Ensure consistent sizing */
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            padding: 10px;
             background-color: #f0f0f0;
-            margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             min-height: 100vh;
+            padding: 10px;
         }
         h1 {
             font-size: 24px;
             margin: 10px 0;
         }
         .grid {
-            display: grid !important; /* Force grid */
-            grid-template-columns: repeat(5, 1fr) !important; /* 5 equal columns */
-            grid-template-rows: repeat(6, 60px) !important; /* 6 fixed rows */
+            display: grid !important;
+            grid-template-columns: 60px 60px 60px 60px 60px !important; /* Explicit pixel widths */
+            grid-template-rows: repeat(6, 60px) !important; /* Fixed row heights */
             gap: 4px;
-            width: 90%;
-            max-width: 320px;
+            width: 300px !important; /* Fixed width for consistency */
             margin: 20px auto;
-            border: 1px solid red; /* Debug border to see grid */
+            border: 2px solid red !important; /* Stronger debug border */
         }
         .cell {
             background-color: white;
@@ -72,8 +75,9 @@
         /* Portrait optimization */
         @media (max-width: 500px) and (orientation: portrait) {
             .grid {
-                width: 95%;
-                grid-template-rows: repeat(6, 50px);
+                width: 90% !important;
+                grid-template-columns: repeat(5, 1fr) !important;
+                grid-template-rows: repeat(6, 50px) !important;
             }
             .cell {
                 font-size: 12px;
