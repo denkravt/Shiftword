@@ -25,23 +25,12 @@
             font-size: 24px;
             margin: 10px 0;
         }
-        .grid-wrapper {
-            width: 100%;
-            max-width: 320px;
-            margin: 0 auto;
-        }
-        .grid {
+        #grid {
             display: grid;
-            grid-template-columns: 60px 60px 60px 60px 60px;
+            grid-template-columns: repeat(5, 60px);
             grid-template-rows: repeat(6, 60px);
             gap: 4px;
-            width: 100%;
-            max-width: 320px;
             margin: 20px auto;
-            border: 2px solid red;
-            /* Fallback for grid failure */
-            display: flex;
-            flex-wrap: wrap;
         }
         .cell {
             background-color: white;
@@ -54,7 +43,16 @@
             text-transform: uppercase;
             width: 60px;
             height: 60px;
-            flex: 0 0 60px; /* For flex fallback */
+            position: relative;
+            flex-direction: column;
+        }
+        .shift-indicator {
+            font-size: 10px;
+            font-weight: normal;
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            color: inherit;
         }
         .green { background-color: #6aaa64; color: white; }
         .yellow { background-color: #c9b458; color: white; }
@@ -83,9 +81,89 @@
             font-size: 16px;
             color: #333;
         }
+        .help-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .overlay.active {
+            display: flex;
+        }
+        .overlay-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+        .close-button:hover {
+            color: #333;
+        }
+        .overlay-content h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .overlay-content p {
+            text-align: left;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .example {
+            display: flex;
+            gap: 4px;
+            margin: 10px 0;
+        }
+        .example-cell {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
         /* Portrait optimization */
         @media (max-width: 500px) and (orientation: portrait) {
-            .grid {
+            #grid {
                 grid-template-columns: repeat(5, 1fr);
                 grid-template-rows: repeat(6, 50px);
                 width: 90%;
@@ -95,7 +173,6 @@
                 font-size: 12px;
                 width: 100%;
                 height: 50px;
-                flex: 0 0 calc(20% - 4px); /* Flex fallback for 5 columns */
             }
             h1 {
                 font-size: 20px;
@@ -107,13 +184,59 @@
     </style>
 </head>
 <body>
+    <button class="help-button" onclick="toggleInstructions()">?</button>
     <h1>Shiftword</h1>
-    <div class="grid-wrapper">
-        <div id="grid"></div>
-    </div>
+    <div id="grid"></div>
     <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word">
     <button onclick="submitGuess()">Submit</button>
     <div id="message"></div>
+
+    <div id="instructionsOverlay" class="overlay">
+        <div class="overlay-content">
+            <button class="close-button" onclick="toggleInstructions()">&times;</button>
+            <h2>How to Play Shiftword</h2>
+            <p>Guess the 5-letter word in 6 tries.</p>
+            <p>Each guess must be a valid 5-letter word. Hit the Submit button to enter your guess.</p>
+            <p>After each guess, the color of the tiles will change to show how close your guess was to the word.</p>
+            
+            <h3>Examples:</h3>
+            <div class="example">
+                <div class="example-cell green">F</div>
+                <div class="example-cell">L</div>
+                <div class="example-cell">E</div>
+                <div class="example-cell">A</div>
+                <div class="example-cell">S</div>
+            </div>
+            <p><strong>Green:</strong> The letter F is in the word and in the correct spot.</p>
+            
+            <div class="example">
+                <div class="example-cell">F</div>
+                <div class="example-cell yellow" style="position: relative;">L<span style="font-size: 10px; position: absolute; bottom: 2px; right: 4px;">+2</span></div>
+                <div class="example-cell">E</div>
+                <div class="example-cell">A</div>
+                <div class="example-cell">S</div>
+            </div>
+            <p><strong>Yellow with +2:</strong> The letter L is in the word but needs to move 2 positions to the right.</p>
+            
+            <div class="example">
+                <div class="example-cell">F</div>
+                <div class="example-cell yellow" style="position: relative;">L<span style="font-size: 10px; position: absolute; bottom: 2px; right: 4px;">-1</span></div>
+                <div class="example-cell">E</div>
+                <div class="example-cell">A</div>
+                <div class="example-cell">S</div>
+            </div>
+            <p><strong>Yellow with -1:</strong> The letter L is in the word but needs to move 1 position to the left.</p>
+            
+            <div class="example">
+                <div class="example-cell">F</div>
+                <div class="example-cell">L</div>
+                <div class="example-cell gray">E</div>
+                <div class="example-cell">A</div>
+                <div class="example-cell">S</div>
+            </div>
+            <p><strong>Gray:</strong> The letter E is not in the word in any spot.</p>
+        </div>
+    </div>
 
     <script>
         const targetWord = "FLEAS"; // Hardcoded for demo
@@ -121,21 +244,139 @@
         let currentGuess = 0;
         let gameOver = false;
 
-        // Initialize and debug grid
+        // List of valid 5-letter words
+        let validWords = new Set([
+            "ABOUT", "ABOVE", "ABUSE", "ACTOR", "ACUTE", "ADMIT", "ADOPT", "ADULT", "AFTER", "AGAIN",
+            "AGENT", "AGREE", "AHEAD", "ALARM", "ALBUM", "ALERT", "ALIEN", "ALIGN", "ALIKE", "ALIVE",
+            "ALLOW", "ALONE", "ALONG", "ALTER", "AMBER", "AMONG", "ANGEL", "ANGER", "ANGLE", "ANGRY",
+            "APART", "APPLE", "APPLY", "ARENA", "ARGUE", "ARISE", "ARRAY", "ARROW", "ASIDE", "ASSET",
+            "AUDIO", "AVOID", "AWAKE", "AWARD", "AWARE", "BADLY", "BAKER", "BASES", "BASIC", "BASIN",
+            "BASIS", "BEACH", "BEGAN", "BEGIN", "BEING", "BELOW", "BENCH", "BILLY", "BIRTH", "BLACK",
+            "BLADE", "BLAME", "BLANK", "BLAST", "BLEED", "BLESS", "BLIND", "BLINK", "BLOCK", "BLOOD",
+            "BLOOM", "BLOWN", "BOARD", "BOOST", "BOOTH", "BOUND", "BRAIN", "BRAND", "BRASS", "BRAVE",
+            "BREAD", "BREAK", "BREED", "BRICK", "BRIDE", "BRIEF", "BRING", "BRINK", "BRISK", "BROAD",
+            "BROKE", "BROOK", "BROWN", "BRUSH", "BUILD", "BUILT", "BUNCH", "BURNS", "BURST", "BUYER",
+            "CABLE", "CALIF", "CANAL", "CARRY", "CATCH", "CAUSE", "CHAIN", "CHAIR", "CHALK", "CHAMP",
+            "CHARM", "CHART", "CHASE", "CHEAP", "CHEAT", "CHECK", "CHEEK", "CHEER", "CHESS", "CHEST",
+            "CHIEF", "CHILD", "CHINA", "CHOSE", "CHUNK", "CIVIL", "CLAIM", "CLASH", "CLASS", "CLEAN",
+            "CLEAR", "CLICK", "CLIFF", "CLIMB", "CLOCK", "CLOSE", "CLOTH", "CLOUD", "CLOWN", "COACH",
+            "COAST", "CORAL", "COUCH", "COULD", "COUNT", "COUPE", "COURT", "COVER", "CRACK", "CRAFT",
+            "CRAMP", "CRANE", "CRANK", "CRASH", "CRAZY", "CREAM", "CREEK", "CREEP", "CREPT", "CRIME",
+            "CRISP", "CROSS", "CROWD", "CROWN", "CRUDE", "CRUEL", "CRUSH", "CURVE", "CYCLE", "DAILY",
+            "DANCE", "DATED", "DEALT", "DEATH", "DEBUT", "DECAY", "DELAY", "DEMON", "DEPTH", "DERBY",
+            "DETER", "DEVIL", "DIARY", "DOING", "DOUBT", "DOZEN", "DRAFT", "DRAIN", "DRAKE", "DRAMA",
+            "DRANK", "DRAWN", "DREAM", "DRESS", "DRIED", "DRIFT", "DRILL", "DRINK", "DRIVE", "DROIT",
+            "DRONE", "DROVE", "DROWN", "DRUNK", "DYING", "EAGER", "EARLY", "EARTH", "EIGHT", "ELITE",
+            "EMPTY", "ENEMY", "ENJOY", "ENTER", "ENTRY", "EQUAL", "ERROR", "EVENT", "EVERY", "EXACT",
+            "EXIST", "EXTRA", "FAITH", "FALSE", "FANCY", "FATAL", "FAULT", "FAVOR", "FEAST", "FIBER",
+            "FIELD", "FIERY", "FIFTH", "FIFTY", "FIGHT", "FINAL", "FIRST", "FIXED", "FLAME", "FLASH",
+            "FLEET", "FLEAS", "FLESH", "FLIER", "FLING", "FLINT", "FLOAT", "FLOCK", "FLOOD", "FLOOR",
+            "FLOUR", "FLUID", "FLUNG", "FLUSH", "FOCUS", "FORCE", "FORTH", "FORTY", "FORUM", "FOUND",
+            "FRAME", "FRANK", "FRAUD", "FREAK", "FRESH", "FRIED", "FRONT", "FROST", "FRUIT", "FULLY",
+            "FUNNY", "GIANT", "GIVEN", "GLASS", "GLOBE", "GLORY", "GLOVE", "GOING", "GRACE", "GRADE",
+            "GRAIN", "GRAND", "GRANT", "GRAPH", "GRASP", "GRASS", "GRAVE", "GREAT", "GREED", "GREEK",
+            "GREEN", "GREET", "GRIEF", "GRILL", "GRIND", "GROSS", "GROUP", "GROVE", "GROWN", "GUARD",
+            "GUESS", "GUEST", "GUIDE", "GUILD", "GUILT", "HABIT", "HANDY", "HAPPY", "HARDY", "HARRY",
+            "HARSH", "HAUNT", "HEART", "HEAVY", "HEDGE", "HENCE", "HENRY", "HILLY", "HONEY", "HONOR",
+            "HORSE", "HOTEL", "HOUSE", "HOVER", "HUMAN", "HUMOR", "IDEAL", "IMAGE", "INDEX", "INNER",
+            "INPUT", "IRONY", "ISSUE", "IVORY", "JAPAN", "JIMMY", "JOINT", "JONES", "JUDGE", "JUICE",
+            "KNOWN", "LABEL", "LABOR", "LADEN", "LARGE", "LASER", "LATER", "LAUGH", "LAYER", "LEARN",
+            "LEASE", "LEAST", "LEAVE", "LEGAL", "LEMON", "LEVEL", "LEWIS", "LIGHT", "LIMIT", "LINEN",
+            "LINKS", "LIVER", "LIVES", "LOCAL", "LODGE", "LOGIC", "LOOSE", "LORDS", "LOSER", "LOWER",
+            "LOYAL", "LUCKY", "LUNCH", "LYING", "MAGIC", "MAJOR", "MAKER", "MANOR", "MAPLE", "MARCH",
+            "MARIA", "MARRY", "MATCH", "MAYBE", "MAYOR", "MEANT", "MEDIA", "MERGE", "MERIT", "MERRY",
+            "METAL", "METER", "METRO", "MIGHT", "MINOR", "MINUS", "MIXED", "MODEL", "MONEY", "MONTH",
+            "MORAL", "MOTOR", "MOUNT", "MOUSE", "MOUTH", "MOVED", "MOVER", "MOVIE", "MUSIC", "NEEDS",
+            "NERVE", "NEVER", "NEWLY", "NIGHT", "NINTH", "NOBLE", "NOISE", "NORTH", "NOTCH", "NOTED",
+            "NOVEL", "NURSE", "OCCUR", "OCEAN", "OFFER", "OFTEN", "ORDER", "OTHER", "OUGHT", "OUTER",
+            "OVARY", "OWNED", "OWNER", "PAINT", "PANEL", "PANIC", "PAPER", "PARTY", "PASTA", "PASTE",
+            "PATCH", "PEACE", "PEACH", "PEARL", "PETER", "PHASE", "PHONE", "PHOTO", "PIANO", "PIECE",
+            "PILOT", "PINCH", "PIOUS", "PITCH", "PLACE", "PLAIN", "PLANE", "PLANT", "PLATE", "PLAZA",
+            "PLEAD", "PLEAT", "PLUMB", "POINT", "POKER", "POLAR", "POUND", "POWER", "PRESS", "PRICE",
+            "PRIDE", "PRIME", "PRINT", "PRIOR", "PRISM", "PRIZE", "PROOF", "PROSE", "PROUD", "PROVE",
+            "PROWL", "PULSE", "PUNCH", "PUPIL", "PURSE", "QUEEN", "QUERY", "QUEST", "QUICK", "QUIET",
+            "QUILT", "QUITE", "QUOTA", "QUOTE", "RADIO", "RAINY", "RAISE", "RALLY", "RANCH", "RANGE",
+            "RAPID", "RATIO", "REACH", "REACT", "READY", "REALM", "REBEL", "REFER", "REIGN", "RELAX",
+            "RELAY", "RENEW", "REPLY", "RIDER", "RIDGE", "RIFLE", "RIGHT", "RIGID", "RINSE", "RISEN",
+            "RIVAL", "RIVER", "ROAST", "ROBIN", "ROBOT", "ROCKY", "ROGER", "ROMAN", "ROOST", "ROUGE",
+            "ROUGH", "ROUND", "ROUTE", "ROVER", "ROYAL", "RUGBY", "RULER", "RUMOR", "RURAL", "RUSTY",
+            "SAFER", "SAINT", "SALAD", "SALON", "SALTY", "SANDY", "SAUCE", "SCALE", "SCARE", "SCARF",
+            "SCARY", "SCENE", "SCENT", "SCOPE", "SCORE", "SCORN", "SCOUT", "SCRAP", "SCREW", "SENSE",
+            "SERUM", "SERVE", "SETUP", "SEVEN", "SHADE", "SHAFT", "SHAKE", "SHALL", "SHAME", "SHAPE",
+            "SHARE", "SHARK", "SHARP", "SHAVE", "SHEAR", "SHEEP", "SHEER", "SHEET", "SHELF", "SHELL",
+            "SHIFT", "SHINE", "SHINY", "SHIRE", "SHIRT", "SHOCK", "SHONE", "SHOOT", "SHORE", "SHORT",
+            "SHOWN", "SHRED", "SHRUB", "SHRUG", "SIDED", "SIGHT", "SILLY", "SINCE", "SIXTH", "SIXTY",
+            "SIZED", "SKATE", "SKIER", "SKILL", "SLEEP", "SLEPT", "SLICE", "SLIDE", "SLING", "SLOPE",
+            "SMALL", "SMART", "SMASH", "SMELL", "SMILE", "SMITH", "SMOKE", "SMOKY", "SNAKE", "SNEAK",
+            "SNIFF", "SOLID", "SOLVE", "SORRY", "SOUND", "SOUTH", "SPACE", "SPARE", "SPARK", "SPEAK",
+            "SPEED", "SPELL", "SPEND", "SPENT", "SPICE", "SPIKE", "SPINE", "SPITE", "SPLIT", "SPOKE",
+            "SPOON", "SPORT", "SPRAY", "STACK", "STAFF", "STAGE", "STAIN", "STAKE", "STALE", "STAMP",
+            "STAND", "STARK", "START", "STATE", "STEAK", "STEAM", "STEEL", "STEEP", "STEER", "STERN",
+            "STICK", "STIFF", "STILL", "STING", "STOCK", "STOMP", "STONE", "STOOD", "STOOL", "STORE",
+            "STORM", "STORY", "STRAP", "STRAW", "STRIP", "STUCK", "STUDY", "STUFF", "STUNT", "STYLE",
+            "SUGAR", "SUITE", "SUPER", "SURGE", "SWEAR", "SWEAT", "SWEEP", "SWEET", "SWELL", "SWEPT",
+            "SWIFT", "SWING", "SWIRL", "SWORD", "SWORE", "SWORN", "SWUNG", "TABLE", "TAKEN", "TASTE",
+            "TASTY", "TAXES", "TEACH", "TEAMS", "TEARS", "TEDDY", "TEETH", "TEMPO", "TENSE", "TENTH",
+            "TERRY", "TEXAS", "THANK", "THEFT", "THEIR", "THEME", "THERE", "THESE", "THICK", "THIEF",
+            "THING", "THINK", "THIRD", "THORN", "THOSE", "THREE", "THREW", "THROW", "THUMB", "TIGER",
+            "TIGHT", "TIMER", "TIMES", "TIMID", "TITLE", "TOAST", "TODAY", "TOKEN", "TONIC", "TOOTH",
+            "TOPIC", "TOTAL", "TOUCH", "TOUGH", "TOWER", "TRACE", "TRACK", "TRACT", "TRADE", "TRAIL",
+            "TRAIN", "TRAIT", "TRASH", "TREAD", "TREAT", "TREND", "TRIAL", "TRIBE", "TRICK", "TRIED",
+            "TRIES", "TROOP", "TROUT", "TRUCK", "TRULY", "TRUNK", "TRUST", "TRUTH", "TULIP", "TUMOR",
+            "TUTOR", "TWEED", "TWELVE", "TWENTY", "TWICE", "TWIST", "UNCLE", "UNDER", "UNDUE", "UNFAIR",
+            "UNION", "UNITE", "UNITY", "UNTIL", "UPPER", "UPSET", "URBAN", "USAGE", "USHER", "USUAL",
+            "UTTER", "VALID", "VALUE", "VAPOR", "VAULT", "VIDEO", "VIGOR", "VILLA", "VIRAL", "VIRUS",
+            "VISIT", "VITAL", "VIVID", "VOCAL", "VOICE", "VOTER", "WAGON", "WAIST", "WASTE", "WATCH",
+            "WATER", "WEARY", "WEAVE", "WEDGE", "WEIGH", "WEIRD", "WHALE", "WHEAT", "WHEEL", "WHERE",
+            "WHICH", "WHILE", "WHIP", "WHITE", "WHOLE", "WHOSE", "WIDEN", "WIDER", "WIDOW", "WIDTH",
+            "WIELD", "WOMAN", "WOMEN", "WORLD", "WORRY", "WORSE", "WORST", "WORTH", "WOULD", "WOUND",
+            "WOVEN", "WRECK", "WRIST", "WRITE", "WRONG", "WROTE", "YACHT", "YEARN", "YIELD", "YOUNG",
+            "YOUTH", "ZEBRA"
+        ]);
+
+        // Add extra uncommon words to broaden coverage
+        const extraWords = [
+            "QAIDS","QOPHS","QANAT","QIBLA","QANUN","QURAN","FJORD","PHLOX","CRWTH","CWTCH",
+            "ZLOTY","ZYMIC","ZYMES","ZIZIT","ZAPPY","ZESTY","XYLYL","XYSTI","XYSTS","ENOKI",
+            "UMAMI","KOMBU","GYOZA","SUSHI","HUMUS","TAIGA","SAIGA","KHADI","KHAKI","NINJA",
+            "KAYAK","KOALA","IGLOO","COYPU","LLAMA","MYRRH","PSALM","PSHAW","LYMPH","NYMPH",
+            "SYNOD","YODEL","YOKEL","OUIJA","AUREI","AURAE","ANODE","IODIC","IODID","OXIDE",
+            "OXEYE","OXLIP","OZONE","GHAZI","FUZZY","JAZZY","BANJO","KAZOO","QUIFF","QUOIN",
+            "QUOTH","QUERN","QUARK","WRYLY","WRACK","WROTH","RHYME","GNASH","KNAVE","KNEAD"
+        ];
+        extraWords.forEach(w => validWords.add(w));
+
+        // Dynamically load a comprehensive dictionary (common + uncommon)
+        const DICT_URL = 'https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt';
+        (async function loadDictionary(){
+            try {
+                const resp = await fetch(DICT_URL);
+                const text = await resp.text();
+                const words = text.split(/\r?\n/)
+                    .filter(w => /^[a-z]{5}$/i.test(w))
+                    .map(w => w.toUpperCase());
+                words.forEach(w => validWords.add(w));
+                console.log(`Loaded dictionary words: ${words.length}`);
+            } catch (e) {
+                console.error('Failed to load dictionary:', e);
+            }
+        })();
+
+        function toggleInstructions() {
+            const overlay = document.getElementById("instructionsOverlay");
+            overlay.classList.toggle("active");
+        }
+
+        // Initialize grid
         const grid = document.getElementById("grid");
-        console.log("Creating grid...");
         for (let i = 0; i < maxGuesses; i++) {
             for (let j = 0; j < 5; j++) {
                 const cell = document.createElement("div");
                 cell.classList.add("cell");
                 cell.id = `cell-${i}-${j}`;
-                cell.textContent = `${i},${j}`; // Debug: Show position
                 grid.appendChild(cell);
             }
         }
-        console.log("Grid creation complete. Total cells:", grid.children.length);
-        console.log("Grid styles:", window.getComputedStyle(grid).display);
-        console.log("Grid columns:", window.getComputedStyle(grid).gridTemplateColumns);
 
         function submitGuess() {
             if (gameOver) return;
@@ -148,6 +389,83 @@
                 return;
             }
 
+            if (!validWords.has(guess)) {
+                document.getElementById("message").textContent = "Not a valid word!";
+                return;
+            }
+
             // Process guess
             const feedback = evaluateGuess(guess);
-            displayGuess(guess, feedback);​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
+            displayGuess(guess, feedback);
+
+            currentGuess++;
+            input.value = "";
+
+            if (guess === targetWord) {
+                document.getElementById("message").textContent = "Congratulations! You won!";
+                gameOver = true;
+            } else if (currentGuess >= maxGuesses) {
+                document.getElementById("message").textContent = `Game Over! The word was ${targetWord}`;
+                gameOver = true;
+            } else {
+                document.getElementById("message").textContent = "";
+            }
+        }
+
+        function evaluateGuess(guess) {
+            const feedback = [];
+            const targetLetters = targetWord.split('');
+            const guessLetters = guess.split('');
+            const used = Array(5).fill(false);
+
+            // First pass: mark correct positions (green)
+            for (let i = 0; i < 5; i++) {
+                if (guessLetters[i] === targetLetters[i]) {
+                    feedback[i] = { color: 'green', shift: null };
+                    used[i] = true;
+                } else {
+                    feedback[i] = null;
+                }
+            }
+
+            // Second pass: mark wrong positions with shift indicators (yellow) and wrong letters (gray)
+            for (let i = 0; i < 5; i++) {
+                if (feedback[i] === null) {
+                    let found = false;
+                    for (let j = 0; j < 5; j++) {
+                        if (!used[j] && guessLetters[i] === targetLetters[j]) {
+                            const shift = j - i; // Positive means move right, negative means move left
+                            feedback[i] = { color: 'yellow', shift: shift };
+                            used[j] = true;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        feedback[i] = { color: 'gray', shift: null };
+                    }
+                }
+            }
+
+            return feedback;
+        }
+
+        function displayGuess(guess, feedback) {
+            for (let i = 0; i < 5; i++) {
+                const cell = document.getElementById(`cell-${currentGuess}-${i}`);
+                cell.textContent = guess[i];
+                cell.classList.add(feedback[i].color);
+                
+                // Add shift indicator for yellow cells
+                if (feedback[i].color === 'yellow' && feedback[i].shift !== null) {
+                    const shiftSpan = document.createElement('span');
+                    shiftSpan.className = 'shift-indicator';
+                    const shiftValue = feedback[i].shift > 0 ? `+${feedback[i].shift}` : feedback[i].shift;
+                    shiftSpan.textContent = shiftValue;
+                    cell.appendChild(shiftSpan);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
