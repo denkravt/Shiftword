@@ -239,10 +239,23 @@
     </div>
 
     <script>
-        const targetWord = "FLEAS"; // Hardcoded for demo
         const maxGuesses = 6;
         let currentGuess = 0;
         let gameOver = false;
+
+        // Daily target word selection: changes at local midnight, deterministic by day
+        function daysSinceEpoch(epoch) {
+            const now = new Date();
+            const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const epochMidnight = new Date(epoch.getFullYear(), epoch.getMonth(), epoch.getDate());
+            return Math.floor((todayMidnight - epochMidnight) / 86400000);
+        }
+        function getDailyWord(words) {
+            if (!words || words.length === 0) return "FLEAS";
+            const epoch = new Date(2025, 0, 1); // Jan 1, 2025 local
+            const idx = ((daysSinceEpoch(epoch) % words.length) + words.length) % words.length;
+            return words[idx];
+        }
 
         // List of valid 5-letter words
         let validWords = new Set([
