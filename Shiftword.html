@@ -363,6 +363,10 @@
         ];
         extraWords.forEach(w => validWords.add(w));
 
+        // Choose daily target from current static set before dynamic load
+        const baseWords = Array.from(validWords);
+        let targetWord = getDailyWord(baseWords);
+
         // Dynamically load a comprehensive dictionary (common + uncommon)
         const DICT_URL = 'https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt';
         (async function loadDictionary(){
