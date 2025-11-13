@@ -244,6 +244,124 @@
         let currentGuess = 0;
         let gameOver = false;
 
+        // List of valid 5-letter words
+        let validWords = new Set([
+            "ABOUT", "ABOVE", "ABUSE", "ACTOR", "ACUTE", "ADMIT", "ADOPT", "ADULT", "AFTER", "AGAIN",
+            "AGENT", "AGREE", "AHEAD", "ALARM", "ALBUM", "ALERT", "ALIEN", "ALIGN", "ALIKE", "ALIVE",
+            "ALLOW", "ALONE", "ALONG", "ALTER", "AMBER", "AMONG", "ANGEL", "ANGER", "ANGLE", "ANGRY",
+            "APART", "APPLE", "APPLY", "ARENA", "ARGUE", "ARISE", "ARRAY", "ARROW", "ASIDE", "ASSET",
+            "AUDIO", "AVOID", "AWAKE", "AWARD", "AWARE", "BADLY", "BAKER", "BASES", "BASIC", "BASIN",
+            "BASIS", "BEACH", "BEGAN", "BEGIN", "BEING", "BELOW", "BENCH", "BILLY", "BIRTH", "BLACK",
+            "BLADE", "BLAME", "BLANK", "BLAST", "BLEED", "BLESS", "BLIND", "BLINK", "BLOCK", "BLOOD",
+            "BLOOM", "BLOWN", "BOARD", "BOOST", "BOOTH", "BOUND", "BRAIN", "BRAND", "BRASS", "BRAVE",
+            "BREAD", "BREAK", "BREED", "BRICK", "BRIDE", "BRIEF", "BRING", "BRINK", "BRISK", "BROAD",
+            "BROKE", "BROOK", "BROWN", "BRUSH", "BUILD", "BUILT", "BUNCH", "BURNS", "BURST", "BUYER",
+            "CABLE", "CALIF", "CANAL", "CARRY", "CATCH", "CAUSE", "CHAIN", "CHAIR", "CHALK", "CHAMP",
+            "CHARM", "CHART", "CHASE", "CHEAP", "CHEAT", "CHECK", "CHEEK", "CHEER", "CHESS", "CHEST",
+            "CHIEF", "CHILD", "CHINA", "CHOSE", "CHUNK", "CIVIL", "CLAIM", "CLASH", "CLASS", "CLEAN",
+            "CLEAR", "CLICK", "CLIFF", "CLIMB", "CLOCK", "CLOSE", "CLOTH", "CLOUD", "CLOWN", "COACH",
+            "COAST", "CORAL", "COUCH", "COULD", "COUNT", "COUPE", "COURT", "COVER", "CRACK", "CRAFT",
+            "CRAMP", "CRANE", "CRANK", "CRASH", "CRAZY", "CREAM", "CREEK", "CREEP", "CREPT", "CRIME",
+            "CRISP", "CROSS", "CROWD", "CROWN", "CRUDE", "CRUEL", "CRUSH", "CURVE", "CYCLE", "DAILY",
+            "DANCE", "DATED", "DEALT", "DEATH", "DEBUT", "DECAY", "DELAY", "DEMON", "DEPTH", "DERBY",
+            "DETER", "DEVIL", "DIARY", "DOING", "DOUBT", "DOZEN", "DRAFT", "DRAIN", "DRAKE", "DRAMA",
+            "DRANK", "DRAWN", "DREAM", "DRESS", "DRIED", "DRIFT", "DRILL", "DRINK", "DRIVE", "DROIT",
+            "DRONE", "DROVE", "DROWN", "DRUNK", "DYING", "EAGER", "EARLY", "EARTH", "EIGHT", "ELITE",
+            "EMPTY", "ENEMY", "ENJOY", "ENTER", "ENTRY", "EQUAL", "ERROR", "EVENT", "EVERY", "EXACT",
+            "EXIST", "EXTRA", "FAITH", "FALSE", "FANCY", "FATAL", "FAULT", "FAVOR", "FEAST", "FIBER",
+            "FIELD", "FIERY", "FIFTH", "FIFTY", "FIGHT", "FINAL", "FIRST", "FIXED", "FLAME", "FLASH",
+            "FLEET", "FLEAS", "FLESH", "FLIER", "FLING", "FLINT", "FLOAT", "FLOCK", "FLOOD", "FLOOR",
+            "FLOUR", "FLUID", "FLUNG", "FLUSH", "FOCUS", "FORCE", "FORTH", "FORTY", "FORUM", "FOUND",
+            "FRAME", "FRANK", "FRAUD", "FREAK", "FRESH", "FRIED", "FRONT", "FROST", "FRUIT", "FULLY",
+            "FUNNY", "GIANT", "GIVEN", "GLASS", "GLOBE", "GLORY", "GLOVE", "GOING", "GRACE", "GRADE",
+            "GRAIN", "GRAND", "GRANT", "GRAPH", "GRASP", "GRASS", "GRAVE", "GREAT", "GREED", "GREEK",
+            "GREEN", "GREET", "GRIEF", "GRILL", "GRIND", "GROSS", "GROUP", "GROVE", "GROWN", "GUARD",
+            "GUESS", "GUEST", "GUIDE", "GUILD", "GUILT", "HABIT", "HANDY", "HAPPY", "HARDY", "HARRY",
+            "HARSH", "HAUNT", "HEART", "HEAVY", "HEDGE", "HENCE", "HENRY", "HILLY", "HONEY", "HONOR",
+            "HORSE", "HOTEL", "HOUSE", "HOVER", "HUMAN", "HUMOR", "IDEAL", "IMAGE", "INDEX", "INNER",
+            "INPUT", "IRONY", "ISSUE", "IVORY", "JAPAN", "JIMMY", "JOINT", "JONES", "JUDGE", "JUICE",
+            "KNOWN", "LABEL", "LABOR", "LADEN", "LARGE", "LASER", "LATER", "LAUGH", "LAYER", "LEARN",
+            "LEASE", "LEAST", "LEAVE", "LEGAL", "LEMON", "LEVEL", "LEWIS", "LIGHT", "LIMIT", "LINEN",
+            "LINKS", "LIVER", "LIVES", "LOCAL", "LODGE", "LOGIC", "LOOSE", "LORDS", "LOSER", "LOWER",
+            "LOYAL", "LUCKY", "LUNCH", "LYING", "MAGIC", "MAJOR", "MAKER", "MANOR", "MAPLE", "MARCH",
+            "MARIA", "MARRY", "MATCH", "MAYBE", "MAYOR", "MEANT", "MEDIA", "MERGE", "MERIT", "MERRY",
+            "METAL", "METER", "METRO", "MIGHT", "MINOR", "MINUS", "MIXED", "MODEL", "MONEY", "MONTH",
+            "MORAL", "MOTOR", "MOUNT", "MOUSE", "MOUTH", "MOVED", "MOVER", "MOVIE", "MUSIC", "NEEDS",
+            "NERVE", "NEVER", "NEWLY", "NIGHT", "NINTH", "NOBLE", "NOISE", "NORTH", "NOTCH", "NOTED",
+            "NOVEL", "NURSE", "OCCUR", "OCEAN", "OFFER", "OFTEN", "ORDER", "OTHER", "OUGHT", "OUTER",
+            "OVARY", "OWNED", "OWNER", "PAINT", "PANEL", "PANIC", "PAPER", "PARTY", "PASTA", "PASTE",
+            "PATCH", "PEACE", "PEACH", "PEARL", "PETER", "PHASE", "PHONE", "PHOTO", "PIANO", "PIECE",
+            "PILOT", "PINCH", "PIOUS", "PITCH", "PLACE", "PLAIN", "PLANE", "PLANT", "PLATE", "PLAZA",
+            "PLEAD", "PLEAT", "PLUMB", "POINT", "POKER", "POLAR", "POUND", "POWER", "PRESS", "PRICE",
+            "PRIDE", "PRIME", "PRINT", "PRIOR", "PRISM", "PRIZE", "PROOF", "PROSE", "PROUD", "PROVE",
+            "PROWL", "PULSE", "PUNCH", "PUPIL", "PURSE", "QUEEN", "QUERY", "QUEST", "QUICK", "QUIET",
+            "QUILT", "QUITE", "QUOTA", "QUOTE", "RADIO", "RAINY", "RAISE", "RALLY", "RANCH", "RANGE",
+            "RAPID", "RATIO", "REACH", "REACT", "READY", "REALM", "REBEL", "REFER", "REIGN", "RELAX",
+            "RELAY", "RENEW", "REPLY", "RIDER", "RIDGE", "RIFLE", "RIGHT", "RIGID", "RINSE", "RISEN",
+            "RIVAL", "RIVER", "ROAST", "ROBIN", "ROBOT", "ROCKY", "ROGER", "ROMAN", "ROOST", "ROUGE",
+            "ROUGH", "ROUND", "ROUTE", "ROVER", "ROYAL", "RUGBY", "RULER", "RUMOR", "RURAL", "RUSTY",
+            "SAFER", "SAINT", "SALAD", "SALON", "SALTY", "SANDY", "SAUCE", "SCALE", "SCARE", "SCARF",
+            "SCARY", "SCENE", "SCENT", "SCOPE", "SCORE", "SCORN", "SCOUT", "SCRAP", "SCREW", "SENSE",
+            "SERUM", "SERVE", "SETUP", "SEVEN", "SHADE", "SHAFT", "SHAKE", "SHALL", "SHAME", "SHAPE",
+            "SHARE", "SHARK", "SHARP", "SHAVE", "SHEAR", "SHEEP", "SHEER", "SHEET", "SHELF", "SHELL",
+            "SHIFT", "SHINE", "SHINY", "SHIRE", "SHIRT", "SHOCK", "SHONE", "SHOOT", "SHORE", "SHORT",
+            "SHOWN", "SHRED", "SHRUB", "SHRUG", "SIDED", "SIGHT", "SILLY", "SINCE", "SIXTH", "SIXTY",
+            "SIZED", "SKATE", "SKIER", "SKILL", "SLEEP", "SLEPT", "SLICE", "SLIDE", "SLING", "SLOPE",
+            "SMALL", "SMART", "SMASH", "SMELL", "SMILE", "SMITH", "SMOKE", "SMOKY", "SNAKE", "SNEAK",
+            "SNIFF", "SOLID", "SOLVE", "SORRY", "SOUND", "SOUTH", "SPACE", "SPARE", "SPARK", "SPEAK",
+            "SPEED", "SPELL", "SPEND", "SPENT", "SPICE", "SPIKE", "SPINE", "SPITE", "SPLIT", "SPOKE",
+            "SPOON", "SPORT", "SPRAY", "STACK", "STAFF", "STAGE", "STAIN", "STAKE", "STALE", "STAMP",
+            "STAND", "STARK", "START", "STATE", "STEAK", "STEAM", "STEEL", "STEEP", "STEER", "STERN",
+            "STICK", "STIFF", "STILL", "STING", "STOCK", "STOMP", "STONE", "STOOD", "STOOL", "STORE",
+            "STORM", "STORY", "STRAP", "STRAW", "STRIP", "STUCK", "STUDY", "STUFF", "STUNT", "STYLE",
+            "SUGAR", "SUITE", "SUPER", "SURGE", "SWEAR", "SWEAT", "SWEEP", "SWEET", "SWELL", "SWEPT",
+            "SWIFT", "SWING", "SWIRL", "SWORD", "SWORE", "SWORN", "SWUNG", "TABLE", "TAKEN", "TASTE",
+            "TASTY", "TAXES", "TEACH", "TEAMS", "TEARS", "TEDDY", "TEETH", "TEMPO", "TENSE", "TENTH",
+            "TERRY", "TEXAS", "THANK", "THEFT", "THEIR", "THEME", "THERE", "THESE", "THICK", "THIEF",
+            "THING", "THINK", "THIRD", "THORN", "THOSE", "THREE", "THREW", "THROW", "THUMB", "TIGER",
+            "TIGHT", "TIMER", "TIMES", "TIMID", "TITLE", "TOAST", "TODAY", "TOKEN", "TONIC", "TOOTH",
+            "TOPIC", "TOTAL", "TOUCH", "TOUGH", "TOWER", "TRACE", "TRACK", "TRACT", "TRADE", "TRAIL",
+            "TRAIN", "TRAIT", "TRASH", "TREAD", "TREAT", "TREND", "TRIAL", "TRIBE", "TRICK", "TRIED",
+            "TRIES", "TROOP", "TROUT", "TRUCK", "TRULY", "TRUNK", "TRUST", "TRUTH", "TULIP", "TUMOR",
+            "TUTOR", "TWEED", "TWELVE", "TWENTY", "TWICE", "TWIST", "UNCLE", "UNDER", "UNDUE", "UNFAIR",
+            "UNION", "UNITE", "UNITY", "UNTIL", "UPPER", "UPSET", "URBAN", "USAGE", "USHER", "USUAL",
+            "UTTER", "VALID", "VALUE", "VAPOR", "VAULT", "VIDEO", "VIGOR", "VILLA", "VIRAL", "VIRUS",
+            "VISIT", "VITAL", "VIVID", "VOCAL", "VOICE", "VOTER", "WAGON", "WAIST", "WASTE", "WATCH",
+            "WATER", "WEARY", "WEAVE", "WEDGE", "WEIGH", "WEIRD", "WHALE", "WHEAT", "WHEEL", "WHERE",
+            "WHICH", "WHILE", "WHIP", "WHITE", "WHOLE", "WHOSE", "WIDEN", "WIDER", "WIDOW", "WIDTH",
+            "WIELD", "WOMAN", "WOMEN", "WORLD", "WORRY", "WORSE", "WORST", "WORTH", "WOULD", "WOUND",
+            "WOVEN", "WRECK", "WRIST", "WRITE", "WRONG", "WROTE", "YACHT", "YEARN", "YIELD", "YOUNG",
+            "YOUTH", "ZEBRA"
+        ]);
+
+        // Add extra uncommon words to broaden coverage
+        const extraWords = [
+            "QAIDS","QOPHS","QANAT","QIBLA","QANUN","QURAN","FJORD","PHLOX","CRWTH","CWTCH",
+            "ZLOTY","ZYMIC","ZYMES","ZIZIT","ZAPPY","ZESTY","XYLYL","XYSTI","XYSTS","ENOKI",
+            "UMAMI","KOMBU","GYOZA","SUSHI","HUMUS","TAIGA","SAIGA","KHADI","KHAKI","NINJA",
+            "KAYAK","KOALA","IGLOO","COYPU","LLAMA","MYRRH","PSALM","PSHAW","LYMPH","NYMPH",
+            "SYNOD","YODEL","YOKEL","OUIJA","AUREI","AURAE","ANODE","IODIC","IODID","OXIDE",
+            "OXEYE","OXLIP","OZONE","GHAZI","FUZZY","JAZZY","BANJO","KAZOO","QUIFF","QUOIN",
+            "QUOTH","QUERN","QUARK","WRYLY","WRACK","WROTH","RHYME","GNASH","KNAVE","KNEAD"
+        ];
+        extraWords.forEach(w => validWords.add(w));
+
+        // Dynamically load a comprehensive dictionary (common + uncommon)
+        const DICT_URL = 'https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt';
+        (async function loadDictionary(){
+            try {
+                const resp = await fetch(DICT_URL);
+                const text = await resp.text();
+                const words = text.split(/\r?\n/)
+                    .filter(w => /^[a-z]{5}$/i.test(w))
+                    .map(w => w.toUpperCase());
+                words.forEach(w => validWords.add(w));
+                console.log(`Loaded dictionary words: ${words.length}`);
+            } catch (e) {
+                console.error('Failed to load dictionary:', e);
+            }
+        })();
+
         function toggleInstructions() {
             const overlay = document.getElementById("instructionsOverlay");
             overlay.classList.toggle("active");
@@ -268,6 +386,11 @@
 
             if (guess.length !== 5) {
                 document.getElementById("message").textContent = "Enter a 5-letter word!";
+                return;
+            }
+
+            if (!validWords.has(guess)) {
+                document.getElementById("message").textContent = "Not a valid word!";
                 return;
             }
 
