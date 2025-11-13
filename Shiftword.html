@@ -67,6 +67,8 @@
             border: 2px solid #ccc;
             border-radius: 4px;
         }
+        /* Hide the standalone input; typing occurs in the grid */
+        #guessInput { display: none; }
         button {
             padding: 8px 16px;
             font-size: 16px;
@@ -242,6 +244,7 @@
         const targetWord = "FLEAS"; // Hardcoded for demo
         const maxGuesses = 6;
         let currentGuess = 0;
+        let currentCol = 0;
         let gameOver = false;
 
         // List of valid 5-letter words
@@ -367,6 +370,40 @@
             overlay.classList.toggle("active");
         }
 
+        // Keyboard input directly into cells
+        document.addEventListener('keydown', (e) => {
+            if (gameOver) return;
+            const overlay = document.getElementById("instructionsOverlay");
+            if (overlay && overlay.classList.contains('active')) return;
+
+            if (/^[a-zA-Z]$/.test(e.key)) {
+                if (currentCol < 5) {
+                    const cell = document.getElementById(`cell-${currentGuess}-${currentCol}`);
+                    cell.classList.remove('green','yellow','gray');
+                    cell.textContent = e.key.toUpperCase();
+                    currentCol++;
+                }
+                e.preventDefault();
+                return;
+            }
+
+            if (e.key === 'Backspace') {
+                if (currentCol > 0) {
+                    currentCol--;
+                    const cell = document.getElementById(`cell-${currentGuess}-${currentCol}`);
+                    cell.textContent = '';
+                }
+                e.preventDefault();
+                return;
+            }
+
+            if (e.key === 'Enter') {
+                submitGuess();
+                e.preventDefault();
+                return;
+            }
+        });
+
         // Initialize grid
         const grid = document.getElementById("grid");
         for (let i = 0; i < maxGuesses; i++) {
@@ -381,10 +418,16 @@
         function submitGuess() {
             if (gameOver) return;
 
-            const input = document.getElementById("guessInput");
-            const guess = input.value.toUpperCase().trim();
+            // Build guess from current row cells
+            let guess = '';
+            for (let i = 0; i < 5; i++) {
+                const cell = document.getElementById(`cell-${currentGuess}-${i}`);
+                const ch = (cell.textContent || '').toUpperCase();
+                guess += ch;
+            }
+            guess = guess.trim();
 
-            if (guess.length !== 5) {
+            if (guess.length !== 5 || /[^A-Z]/.test(guess)) {
                 document.getElementById("message").textContent = "Enter a 5-letter word!";
                 return;
             }
@@ -399,7 +442,7 @@
             displayGuess(guess, feedback);
 
             currentGuess++;
-            input.value = "";
+            currentCol = 0;
 
             if (guess === targetWord) {
                 document.getElementById("message").textContent = "Congratulations! You won!";
