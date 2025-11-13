@@ -25,23 +25,12 @@
             font-size: 24px;
             margin: 10px 0;
         }
-        .grid-wrapper {
-            width: 100%;
-            max-width: 320px;
-            margin: 0 auto;
-        }
-        .grid {
+        #grid {
             display: grid;
-            grid-template-columns: 60px 60px 60px 60px 60px;
+            grid-template-columns: repeat(5, 60px);
             grid-template-rows: repeat(6, 60px);
             gap: 4px;
-            width: 100%;
-            max-width: 320px;
             margin: 20px auto;
-            border: 2px solid red;
-            /* Fallback for grid failure */
-            display: flex;
-            flex-wrap: wrap;
         }
         .cell {
             background-color: white;
@@ -54,7 +43,16 @@
             text-transform: uppercase;
             width: 60px;
             height: 60px;
-            flex: 0 0 60px; /* For flex fallback */
+            position: relative;
+            flex-direction: column;
+        }
+        .shift-indicator {
+            font-size: 10px;
+            font-weight: normal;
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            color: inherit;
         }
         .green { background-color: #6aaa64; color: white; }
         .yellow { background-color: #c9b458; color: white; }
@@ -83,9 +81,89 @@
             font-size: 16px;
             color: #333;
         }
+        .help-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .overlay.active {
+            display: flex;
+        }
+        .overlay-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+        .close-button:hover {
+            color: #333;
+        }
+        .overlay-content h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .overlay-content p {
+            text-align: left;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .example {
+            display: flex;
+            gap: 4px;
+            margin: 10px 0;
+        }
+        .example-cell {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
         /* Portrait optimization */
         @media (max-width: 500px) and (orientation: portrait) {
-            .grid {
+            #grid {
                 grid-template-columns: repeat(5, 1fr);
                 grid-template-rows: repeat(6, 50px);
                 width: 90%;
@@ -95,7 +173,6 @@
                 font-size: 12px;
                 width: 100%;
                 height: 50px;
-                flex: 0 0 calc(20% - 4px); /* Flex fallback for 5 columns */
             }
             h1 {
                 font-size: 20px;
@@ -107,13 +184,59 @@
     </style>
 </head>
 <body>
+    <button class="help-button" onclick="toggleInstructions()">?</button>
     <h1>Shiftword</h1>
-    <div class="grid-wrapper">
-        <div id="grid"></div>
-    </div>
+    <div id="grid"></div>
     <input type="text" id="guessInput" maxlength="5" placeholder="Enter 5-letter word">
     <button onclick="submitGuess()">Submit</button>
     <div id="message"></div>
+
+    <div id="instructionsOverlay" class="overlay">
+        <div class="overlay-content">
+            <button class="close-button" onclick="toggleInstructions()">&times;</button>
+            <h2>How to Play Shiftword</h2>
+            <p>Guess the 5-letter word in 6 tries.</p>
+            <p>Each guess must be a valid 5-letter word. Hit the Submit button to enter your guess.</p>
+            <p>After each guess, the color of the tiles will change to show how close your guess was to the word.</p>
+            
+            <h3>Examples:</h3>
+            <div class="example">
+                <div class="example-cell green">F</div>
+                <div class="example-cell">L</div>
+                <div class="example-cell">E</div>
+                <div class="example-cell">A</div>
+                <div class="example-cell">S</div>
+            </div>
+            <p><strong>Green:</strong> The letter F is in the word and in the correct spot.</p>
+            
+            <div class="example">
+                <div class="example-cell">F</div>
+                <div class="example-cell yellow" style="position: relative;">L<span style="font-size: 10px; position: absolute; bottom: 2px; right: 4px;">+2</span></div>
+                <div class="example-cell">E</div>
+                <div class="example-cell">A</div>
+                <div class="example-cell">S</div>
+            </div>
+            <p><strong>Yellow with +2:</strong> The letter L is in the word but needs to move 2 positions to the right.</p>
+            
+            <div class="example">
+                <div class="example-cell">F</div>
+                <div class="example-cell yellow" style="position: relative;">L<span style="font-size: 10px; position: absolute; bottom: 2px; right: 4px;">-1</span></div>
+                <div class="example-cell">E</div>
+                <div class="example-cell">A</div>
+                <div class="example-cell">S</div>
+            </div>
+            <p><strong>Yellow with -1:</strong> The letter L is in the word but needs to move 1 position to the left.</p>
+            
+            <div class="example">
+                <div class="example-cell">F</div>
+                <div class="example-cell">L</div>
+                <div class="example-cell gray">E</div>
+                <div class="example-cell">A</div>
+                <div class="example-cell">S</div>
+            </div>
+            <p><strong>Gray:</strong> The letter E is not in the word in any spot.</p>
+        </div>
+    </div>
 
     <script>
         const targetWord = "FLEAS"; // Hardcoded for demo
@@ -121,21 +244,21 @@
         let currentGuess = 0;
         let gameOver = false;
 
-        // Initialize and debug grid
+        function toggleInstructions() {
+            const overlay = document.getElementById("instructionsOverlay");
+            overlay.classList.toggle("active");
+        }
+
+        // Initialize grid
         const grid = document.getElementById("grid");
-        console.log("Creating grid...");
         for (let i = 0; i < maxGuesses; i++) {
             for (let j = 0; j < 5; j++) {
                 const cell = document.createElement("div");
                 cell.classList.add("cell");
                 cell.id = `cell-${i}-${j}`;
-                cell.textContent = `${i},${j}`; // Debug: Show position
                 grid.appendChild(cell);
             }
         }
-        console.log("Grid creation complete. Total cells:", grid.children.length);
-        console.log("Grid styles:", window.getComputedStyle(grid).display);
-        console.log("Grid columns:", window.getComputedStyle(grid).gridTemplateColumns);
 
         function submitGuess() {
             if (gameOver) return;
@@ -150,4 +273,76 @@
 
             // Process guess
             const feedback = evaluateGuess(guess);
-            displayGuess(guess, feedback);​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
+            displayGuess(guess, feedback);
+
+            currentGuess++;
+            input.value = "";
+
+            if (guess === targetWord) {
+                document.getElementById("message").textContent = "Congratulations! You won!";
+                gameOver = true;
+            } else if (currentGuess >= maxGuesses) {
+                document.getElementById("message").textContent = `Game Over! The word was ${targetWord}`;
+                gameOver = true;
+            } else {
+                document.getElementById("message").textContent = "";
+            }
+        }
+
+        function evaluateGuess(guess) {
+            const feedback = [];
+            const targetLetters = targetWord.split('');
+            const guessLetters = guess.split('');
+            const used = Array(5).fill(false);
+
+            // First pass: mark correct positions (green)
+            for (let i = 0; i < 5; i++) {
+                if (guessLetters[i] === targetLetters[i]) {
+                    feedback[i] = { color: 'green', shift: null };
+                    used[i] = true;
+                } else {
+                    feedback[i] = null;
+                }
+            }
+
+            // Second pass: mark wrong positions with shift indicators (yellow) and wrong letters (gray)
+            for (let i = 0; i < 5; i++) {
+                if (feedback[i] === null) {
+                    let found = false;
+                    for (let j = 0; j < 5; j++) {
+                        if (!used[j] && guessLetters[i] === targetLetters[j]) {
+                            const shift = j - i; // Positive means move right, negative means move left
+                            feedback[i] = { color: 'yellow', shift: shift };
+                            used[j] = true;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        feedback[i] = { color: 'gray', shift: null };
+                    }
+                }
+            }
+
+            return feedback;
+        }
+
+        function displayGuess(guess, feedback) {
+            for (let i = 0; i < 5; i++) {
+                const cell = document.getElementById(`cell-${currentGuess}-${i}`);
+                cell.textContent = guess[i];
+                cell.classList.add(feedback[i].color);
+                
+                // Add shift indicator for yellow cells
+                if (feedback[i].color === 'yellow' && feedback[i].shift !== null) {
+                    const shiftSpan = document.createElement('span');
+                    shiftSpan.className = 'shift-indicator';
+                    const shiftValue = feedback[i].shift > 0 ? `+${feedback[i].shift}` : feedback[i].shift;
+                    shiftSpan.textContent = shiftValue;
+                    cell.appendChild(shiftSpan);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
