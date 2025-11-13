@@ -382,6 +382,7 @@
                     cell.classList.remove('green','yellow','gray');
                     cell.textContent = e.key.toUpperCase();
                     currentCol++;
+                    updateActiveCell();
                 }
                 e.preventDefault();
                 return;
@@ -392,6 +393,7 @@
                     currentCol--;
                     const cell = document.getElementById(`cell-${currentGuess}-${currentCol}`);
                     cell.textContent = '';
+                    updateActiveCell();
                 }
                 e.preventDefault();
                 return;
@@ -404,6 +406,16 @@
             }
         });
 
+        function updateActiveCell() {
+            // Remove previous indicator
+            document.querySelectorAll('.active-cell').forEach(el => el.classList.remove('active-cell'));
+            if (gameOver) return;
+            if (currentGuess < maxGuesses && currentCol < 5) {
+                const cell = document.getElementById(`cell-${currentGuess}-${currentCol}`);
+                if (cell) cell.classList.add('active-cell');
+            }
+        }
+
         // Initialize grid
         const grid = document.getElementById("grid");
         for (let i = 0; i < maxGuesses; i++) {
@@ -414,6 +426,7 @@
                 grid.appendChild(cell);
             }
         }
+        updateActiveCell();
 
         function submitGuess() {
             if (gameOver) return;
@@ -443,6 +456,7 @@
 
             currentGuess++;
             currentCol = 0;
+            updateActiveCell();
 
             if (guess === targetWord) {
                 document.getElementById("message").textContent = "Congratulations! You won!";
